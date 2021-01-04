@@ -1,0 +1,22 @@
+from setuptools import setup
+
+setup(
+    name='winotify',
+    version='1.0.0',
+    py_modules=["winotify"],
+    url='',
+    license='MIT',
+    author='versa',
+    author_email='versa1220@gmail.com',
+    description='Show notification toast on Windowss 10',
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    entry_points={
+        'console_scripts': ['winotify=winotify:main']
+    },
+    classifiers=[
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+    ]
+)
