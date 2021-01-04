@@ -16,6 +16,7 @@ class Sound:
 
 
 class audio:
+    """ audio wrapper class """
     Default = Sound("ms-winsoundevent:Notification.Default")
     IM = Sound("ms-winsoundevent:Notification.IM")
     Mail = Sound("ms-winsoundevent:Notification.Mail")
@@ -78,7 +79,13 @@ $Notifier.Show($Toast);
 
 
 class Notification(object):
-    def __init__(self, app_id: str, title: str, msg: str = "", icon="", duration='short', launch=""):
+    def __init__(self,
+                 app_id: str,
+                 title: str,
+                 msg: str = "",
+                 icon: str = "",
+                 duration: str = 'short',
+                 launch: str = None):
         """
         Notification class
 

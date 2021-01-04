@@ -4,7 +4,7 @@ setup(
     name='winotify',
     version='1.0.0',
     py_modules=["winotify"],
-    url='',
+    url='https://github.com/versa-syahptr/winotify',
     license='MIT',
     author='versa',
     author_email='versa1220@gmail.com',
