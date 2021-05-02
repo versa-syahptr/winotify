@@ -55,8 +55,8 @@ $Template = @"
     <visual>
         <binding template="ToastImageAndText02">
             <image id="1" src="{icon}" />
-            <text id="1">{title}</text>
-            <text id="2">{msg}</text>
+            <text id="1"><![CDATA[{title}]]></text>
+            <text id="2"><![CDATA[{msg}]]></text>
         </binding>
     </visual>
     <actions>
@@ -85,7 +85,7 @@ class Notification(object):
                  msg: str = "",
                  icon: str = "",
                  duration: str = 'short',
-                 launch: str = None):
+                 launch: str = ''):
         """
         Notification class
 
