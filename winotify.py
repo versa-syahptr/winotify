@@ -5,7 +5,7 @@ import argparse
 from tempfile import NamedTemporaryFile
 from subprocess import PIPE, STDOUT, CREATE_NO_WINDOW
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 class Sound:
