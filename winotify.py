@@ -3,8 +3,9 @@ import subprocess
 import sys
 import argparse
 from tempfile import NamedTemporaryFile
+from subprocess import PIPE, STDOUT, CREATE_NO_WINDOW
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 class Sound:
@@ -169,13 +170,17 @@ class Notification(object):
         if not self.script:
             raise ValueError("Build the notification first before calling show()")
 
-        with NamedTemporaryFile('w', encoding='utf-8', suffix='.ps1', delete=False) as file:
+        with NamedTemporaryFile('w', encoding='utf-16', suffix='.ps1', delete=False) as file:
             file.write(self.script)
         subprocess.run([
             "powershell.exe",
             "-ExecutionPolicy", "Bypass",
+            "-WindowStyle", "Hidden",
             "-file", file.name
-        ])
+        ],
+            stdout=PIPE,
+            stderr=STDOUT,
+            creationflags=CREATE_NO_WINDOW)
         os.remove(file.name)
 
 
