@@ -1,5 +1,5 @@
 # Winotify
-A pure python module to show notification toast on Windowss 10.
+A pure python module to show notification toast on Windows 10.
 
 ## Installation
 Install winotify using pip
@@ -7,6 +7,9 @@ Install winotify using pip
 ```sh
 pip install winotify
 ```
+
+## Changelog
+see [changelog](https://github.com/versa-syahptr/winotify/blob/master/CHANGELOG.md)
 
 ## Examples
 
@@ -72,6 +75,7 @@ winotify ^
 --action "open github" ^
 --action_url "http://github.com"         
 ```
+> Use `winotify-nc` instead of `winotify` for non console usage. Useful when invoking command from GUI.
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

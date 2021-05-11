@@ -38,6 +38,23 @@ class MyTestCase(unittest.TestCase):
         toast.build().show()
         print(toast.script)
 
+    def test_toast_non_english(self):
+        toast = Notification(app_id="winotify test",
+                             title="السلام عليكم",
+                             msg="Peace be upon you!")
+
+        toast.build().show()
+        print(toast.script)
+
+    def test_toast_with_action(self):
+        toast = Notification(app_id="winotify test",
+                             title="Winotify Test Toast",
+                             msg="New Notification with actions!")
+        toast.add_actions("go to github", "https://github.com/versa-syahptr/winotify")
+
+        toast.build().show()
+        print(toast.script)
+
 
 if __name__ == '__main__':
     unittest.main()

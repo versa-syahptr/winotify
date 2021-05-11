@@ -5,7 +5,7 @@ import argparse
 from tempfile import NamedTemporaryFile
 from subprocess import PIPE, STDOUT, CREATE_NO_WINDOW
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 
 class Sound:
@@ -185,7 +185,8 @@ class Notification(object):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="winotify", description="Show notification toast on Windowss 10")
+    parser = argparse.ArgumentParser(prog="winotify[-nc]", description="Show notification toast on Windows 10."
+                                                                       "Use 'winotify-nc' for no console window.")
     parser.version = __version__
     parser.add_argument('-id',
                         '--app-id',
