@@ -75,7 +75,6 @@ winotify ^
 --action "open github" ^
 --action_url "http://github.com"         
 ```
-> Use `winotify-nc` instead of `winotify` for non console usage. Useful when invoking command from GUI.
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

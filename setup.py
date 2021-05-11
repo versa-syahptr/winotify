@@ -13,7 +13,7 @@ setup(
     long_description_content_type="text/markdown",
     entry_points={
         'console_scripts': ['winotify=winotify:main'],
-        'gui_scripts': ['winotify-nc=winotify:main.nc']
+        'gui_scripts': ['winotify-nc=winotify:main']  # future release
     },
     classifiers=[
         "License :: OSI Approved :: MIT License",
