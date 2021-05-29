@@ -185,7 +185,7 @@ class Notification(object):
             stdout=subprocess.DEVNULL,  # set to null because we don't need the output :)
             stderr=subprocess.DEVNULL,
             startupinfo=si
-        )
+        ) #need to make sure that DEVNULL handle is closed
         os.remove(file.name)
 
 
