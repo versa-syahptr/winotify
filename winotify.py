@@ -3,7 +3,6 @@ import subprocess
 import sys
 import argparse
 from tempfile import NamedTemporaryFile
-from subprocess import PIPE, STDOUT, CREATE_NO_WINDOW
 
 __version__ = "1.0.2"
 
@@ -172,15 +171,21 @@ class Notification(object):
 
         with NamedTemporaryFile('w', encoding='utf-16', suffix='.ps1', delete=False) as file:
             file.write(self.script)
+
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         subprocess.run([
             "powershell.exe",
             "-ExecutionPolicy", "Bypass",
             "-WindowStyle", "Hidden",
             "-file", file.name
         ],
-            stdout=PIPE,
-            stderr=STDOUT,
-            creationflags=CREATE_NO_WINDOW)
+            # stdin, stdout, and stderr have to be defined here, because windows tries to duplicate these if not null
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,  # set to null because we don't need the output :)
+            stderr=subprocess.DEVNULL,
+            startupinfo=si
+        )
         os.remove(file.name)
 
 
