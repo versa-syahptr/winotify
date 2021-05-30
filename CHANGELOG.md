@@ -1,3 +1,7 @@
+* `1.0.3`
+    * fix subprocess problem with pyinstaller `--noconsole`
+    * added `winotify-nc` command for no console output
+
 * `1.0.2`
     * fix non english language encoding problem
     * fix appearing powershell window in windowed mode (no console)
