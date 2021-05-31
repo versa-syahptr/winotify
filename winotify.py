@@ -177,7 +177,6 @@ class Notification(object):
         subprocess.run([
             "powershell.exe",
             "-ExecutionPolicy", "Bypass",
-            "-WindowStyle", "Hidden",
             "-file", file.name
         ],
             # stdin, stdout, and stderr have to be defined here, because windows tries to duplicate these if not null
