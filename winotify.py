@@ -4,7 +4,7 @@ import sys
 import argparse
 from tempfile import NamedTemporaryFile
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 
 class Sound:
