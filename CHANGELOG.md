@@ -1,3 +1,5 @@
+* `1.0.4`
+    * fix main console window gets hidden after showing notification
 * `1.0.3`
     * fix subprocess problem with pyinstaller `--noconsole`
     * added `winotify-nc` command for no console output
