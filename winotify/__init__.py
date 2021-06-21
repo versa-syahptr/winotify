@@ -1,10 +1,54 @@
 import os
 import subprocess
 import sys
-import argparse
 from tempfile import NamedTemporaryFile
+import typing
 
-__version__ = "1.0.4"
+from winotify._registry import register, format_name
+
+__version__ = "1.1.0-dev"
+__all__ = ["Notification", "audio", "register", "initialize", "callback"]
+
+APP_ID = "Windows App"
+CALLBACKS = {}
+
+
+def initialize(app_id: str, app_path: str):
+    """
+    register app_id to windows registry as a protocol,
+    eg. the id is "My Awesome App" can be called from browser or run.exe by typing "my-awesome-app:[Params]"
+    Params is optional
+
+    then call a callback functions from CALLBACK if the script called from protocol
+
+    :param app_id: your app name, make it readable to your user. It can contain spaces, however special characters
+                       (eg. é) are not supported.
+    :param app_path: your absolute path to your script entry point,
+    :return:
+    """
+    global APP_ID
+    APP_ID = app_id
+    register(app_id, app_path)
+    if len(sys.argv) > 1:
+        if ':' in sys.argv[1]:
+            func_name = sys.argv.pop(1).split(':')[1]
+            if func_name in CALLBACKS:
+                CALLBACKS[func_name]()
+        sys.exit()
+    else:
+        pass
+
+
+def callback(func):
+    """
+    callback decorator
+    register decorated function to CALLBACKS dict, which is later called by initialize()
+    :param func: function to register
+    :return: func
+    """
+    CALLBACKS[func.__name__] = func
+    func.is_callback = True
+    return func
 
 
 class Sound:
@@ -126,14 +170,18 @@ class Notification(object):
         """
         self.audio = '<audio src="{}" loop="{}" />'.format(audio, str(loop).lower())
 
-    def add_actions(self, label: str, link: str):
+    def add_actions(self, label: str, link: str = "", *, callback: typing.Callable = None):
         """
         Add action button to the notification. You can have up to 5 buttons each toast.
 
         :param label: The label of the button
         :param link: The url to launch when clicking the button, 'file:///' protocol is allowed
+        :param callback:
         :return: None
         """
+        if callback is not None and callable(callback) and hasattr(callback, "is_callback"):
+            link = format_name(APP_ID) + ":" + callback.__name__
+
         xml = '<action activationType="protocol" content="{label}" arguments="{link}" />'
         if len(self.actions) < 5:
             self.actions.append(xml.format(label=label, link=link))
@@ -187,83 +235,3 @@ class Notification(object):
         )
         os.remove(file.name)
 
-
-def main():
-    parser = argparse.ArgumentParser(prog="winotify[-nc]", description="Show notification toast on Windows 10."
-                                                                       "Use 'winotify-nc' for no console window.")
-    parser.version = __version__
-    parser.add_argument('-id',
-                        '--app-id',
-                        metavar="NAME",
-                        default="windows app",
-                        help="Your app name")
-    parser.add_argument("-t",
-                        "--title",
-                        default="Winotify Test Toast",
-                        help="the notification title")
-    parser.add_argument("-m",
-                        "--message",
-                        default='New Notification!',
-                        help="the notification's main messages")
-    parser.add_argument("-i",
-                        "--icon",
-                        default='',
-                        metavar="PATH",
-                        help="the icon path for the notification (note: the path must be absolute)")
-    parser.add_argument("--duration",
-                        default="short",
-                        choices=("short", "long"),
-                        help="the duration of the notification should display (default: short)")
-    parser.add_argument("--open-url",
-                        default='',
-                        metavar='URL',
-                        help="the URL to open when user click the notification")
-    parser.add_argument("--audio",
-                        help="type of audio to play (default: silent)")
-    parser.add_argument("--loop",
-                        action="store_true",
-                        help="whether to loop audio")
-    parser.add_argument("--action",
-                        metavar="LABEL",
-                        action="append",
-                        help="add button with LABEL as text, you can add up to 5 buttons")
-    parser.add_argument("--action-url",
-                        metavar="URL",
-                        action="append",
-                        required=("--action" in sys.argv),
-                        help="an URL to launch when the button clicked")
-    parser.add_argument("-v",
-                        "--version",
-                        action="version")
-
-    args = parser.parse_args()
-
-    toast = Notification(args.app_id,
-                         args.title,
-                         args.message,
-                         args.icon,
-                         args.duration,
-                         args.open_url)
-
-    if args.audio is not None:
-        if args.audio not in audio_map.keys():
-            sys.exit("Invalid audio " + args.audio)
-        else:
-            toast.set_audio(audio_map[args.audio], args.loop)
-
-    actions = args.action
-    action_urls = args.action_url
-    if actions and action_urls:
-        if len(actions) == len(action_urls):
-            dik = dict(zip(actions, action_urls))
-            for action, url in dik.items():
-                toast.add_actions(action, url)
-        else:
-            parser.error("imbalance arguments, "
-                         "the amount of action specified is not the same as the specified amount of action-url")
-
-    toast.build().show()
-
-
-if __name__ == '__main__':
-    main()
