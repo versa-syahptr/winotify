@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='winotify',
-    version='1.0.4-dev',
+    version='1.1.0-dev',
     packages=["winotify"],
     url='https://github.com/versa-syahptr/winotify',
     license='MIT',
@@ -12,8 +12,8 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     entry_points={
-        'console_scripts': ['winotify=winotify:main'],
-        'gui_scripts': ['winotify-nc=winotify:main']
+        'console_scripts': ['winotify=winotify.__main__:main'],
+        'gui_scripts': ['winotify-nc=winotify.__main__:main']
     },
     classifiers=[
         "License :: OSI Approved :: MIT License",

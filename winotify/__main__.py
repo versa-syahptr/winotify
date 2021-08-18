@@ -2,18 +2,21 @@ import argparse
 import sys
 
 import winotify
-from winotify import Notification, audio_map
+from winotify import Notification, audio
+
+audio_map = {key.lower(): value for key, value in audio.__dict__.items() if not key.startswith("__")}
+
 
 def main():
     parser = argparse.ArgumentParser(prog="winotify[-nc]", description="Show notification toast on Windows 10."
                                      "Use 'winotify-nc' for no console window.")
     parser.version = winotify.__version__
-    parser.add_argument('-id',
-                        '--app-id',
+    parser.add_argument('-app_id',
+                        '--app-app_id',
                         metavar="NAME",
                         default="windows app",
                         help="Your app name")
-    parser.add_argument("-t",
+    parser.add_argument("-thread",
                         "--title",
                         default="Winotify Test Toast",
                         help="the notification title")
@@ -25,7 +28,7 @@ def main():
                         "--icon",
                         default='',
                         metavar="PATH",
-                        help="the icon path for the notification (note: the path must be absolute)")
+                        help="the icon app_path for the notification (note: the app_path must be absolute)")
     parser.add_argument("--duration",
                         default="short",
                         choices=("short", "long"),
@@ -79,4 +82,7 @@ def main():
                          "the amount of action specified is not the same as the specified amount of action-url")
 
     toast.build().show()
+
+if __name__ == '__main__':
+    main()
 
