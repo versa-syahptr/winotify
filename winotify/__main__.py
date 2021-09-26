@@ -11,8 +11,8 @@ def main():
     parser = argparse.ArgumentParser(prog="winotify[-nc]", description="Show notification toast on Windows 10."
                                      "Use 'winotify-nc' for no console window.")
     parser.version = winotify.__version__
-    parser.add_argument('-app_id',
-                        '--app-app_id',
+    parser.add_argument('-id',
+                        '--app-id',
                         metavar="NAME",
                         default="windows app",
                         help="Your app name")

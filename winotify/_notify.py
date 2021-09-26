@@ -6,7 +6,8 @@ import os
 import subprocess
 import sys
 import typing
-from tempfile import NamedTemporaryFile, gettempdir
+import atexit
+from tempfile import gettempdir
 
 
 TEMPLATE = r"""
@@ -41,6 +42,30 @@ $Notifier.Show($Toast);
 """
 
 tempdir = gettempdir()
+
+
+def _run_ps(*, file='', command=''):
+    si = subprocess.STARTUPINFO()
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+    cmd = ["powershell.exe", "-ExecutionPolicy", "Bypass"]
+    if file and command:
+        raise ValueError
+    elif file:
+        cmd.extend(["-file", file])
+    elif command:
+        cmd.extend(['-Command', command])
+    else:
+        raise ValueError
+
+    subprocess.Popen(
+        cmd,
+        # stdin, stdout, and stderr have to be defined here, because windows tries to duplicate these if not null
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,  # set to null because we don't need the output :)
+        stderr=subprocess.DEVNULL,
+        startupinfo=si
+    )
 
 
 class Notification(object):
@@ -96,7 +121,8 @@ class Notification(object):
         Add action button to the notification. You can have up to 5 buttons each toast.
 
         :param label: The label of the button
-        :param url: The url to launch when clicking the button, 'file:///' protocol is allowed
+        :param url: The url to launch when clicking the button, 'file:///' protocol is allowed. Or a user defined
+                    protocol to execute a callback function
         :return: None
         """
 
@@ -105,10 +131,20 @@ class Notification(object):
             self.actions.append(xml.format(label=label, link=url))
 
     def build(self):
+        import warnings
         """
-        Builds a temporary Windows PowerShell script
-
         :return: self
+        """
+        warnings.warn("build is deprecated, call show directly instead", DeprecationWarning)
+        return self
+
+    def show(self):
+        """
+        Invoke the temporary created script to Powershell to show the toast.
+        Note: Running the PowerShell script is by far the slowest process here, and can take a few
+        seconds in some cases.
+
+        :return: None
         """
         if self.actions:
             self.actions = '\n'.join(self.actions)
@@ -122,36 +158,9 @@ class Notification(object):
             self.launch = 'activationType="protocol" launch="{}"'.format(self.launch)
 
         self.script = TEMPLATE.format(**self.__dict__)
-        return self
 
-    def show(self):
-        """
-        Invoke the temporary created script to Powershell to show the toast.
-        Note: Running the PowerShell script is by far the slowest process here, and can take a few
-        seconds in some cases.
+        _run_ps(command=self.script)
 
-        :return: None
-        """
-        if not self.script:
-            raise ValueError("Build the notification first before calling show()")
-
-        with NamedTemporaryFile('w', encoding='utf-16', suffix='.ps1', delete=False) as file:
-            file.write(self.script)
-
-        si = subprocess.STARTUPINFO()
-        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        subprocess.run([
-            "powershell.exe",
-            "-ExecutionPolicy", "Bypass",
-            "-file", file.name
-        ],
-            # stdin, stdout, and stderr have to be defined here, because windows tries to duplicate these if not null
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,  # set to null because we don'thread need the output :)
-            stderr=subprocess.DEVNULL,
-            startupinfo=si
-        )
-        os.remove(file.name)
 
 
 class Notifier:
@@ -174,21 +183,21 @@ class Notifier:
         self.app_path = app_path
         self.icon = ""
         self.callbacks = {}
-        self.pipe = os.path.join(tempdir, 'winotify-pipe')
+        pidfile = os.path.join(tempdir, f'{self.app_id}.pid')
 
         register(self.app_id, self.app_path)
 
         if self._protocol_launched():
             # communicate to main process if it's alive
             self.func_to_call = sys.argv[1].split(':')[1]
-            if os.path.exists(self.pipe):
-                sender = sender_class(self.pipe)
+            if os.path.isfile(pidfile):
+                sender = sender_class()
                 sender.send(self.func_to_call)
                 sys.exit()
-            else:
-                pass  # continue flow until .start()
         else:
-            self.listener = listener_class(self.pipe)
+            self.listener = listener_class()
+            open(pidfile, 'w').write(str(os.getpid()))  # pid file
+            atexit.register(os.unlink, pidfile)
 
     def set_icon(self, path: str):
         """
@@ -226,7 +235,7 @@ class Notifier:
         :return:
         """
         if self._protocol_launched():  # call the callback directly
-            self.callbacks.get(self.func_to_call)
+            self.callbacks.get(self.func_to_call)()
 
         else:
             self.listener.callbacks.update(self.callbacks)
@@ -253,4 +262,13 @@ class Notifier:
         if callable(func) and func.__name__ in self.callbacks:
             url = format_name(self.app_id) + ":" + func.__name__
             return url
+
+    def clear(self):
+        cmd = f"""\
+        [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null
+        [Windows.UI.Notifications.ToastNotificationManager]::History.Clear('{self.app_id}')
+        """
+        _run_ps(command=cmd)
+
+
 

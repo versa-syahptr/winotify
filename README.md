@@ -11,7 +11,7 @@ pip install winotify
 ## Changelog
 see [changelog](https://github.com/versa-syahptr/winotify/blob/master/CHANGELOG.md)
 
-## Examples
+## Usage
 
 #### A simple title and text notification
 ```python

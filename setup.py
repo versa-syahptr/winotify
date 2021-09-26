@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='winotify',
-    version='1.1.0-dev',
+    version='1.1.0.dev.1',
     packages=["winotify"],
     url='https://github.com/versa-syahptr/winotify',
     license='MIT',

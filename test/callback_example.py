@@ -29,10 +29,11 @@ def do_somethin():
 @notifier.callback  # register quit func
 def quit_():
     # this wont work if called from the thread
-    sys.exit()
+    raise KeyboardInterrupt
 
 
 if __name__ == '__main__':
+    keyboard.add_hotkey()
     notifier.start()
 
     # no need to specify app_id every time
