@@ -1,3 +1,6 @@
+import queue
+import sched
+
 from . import audio
 from ._registry import register, format_name
 from .communication import Listener, Sender
@@ -163,7 +166,7 @@ class Notification(object):
 
 
 class Notifier:
-    def __init__(self, app_id, app_path):
+    def __init__(self, registry_data: dict):
         """
         register app_id to windows registry as a protocol,
         eg. the app_id is "My Awesome App" can be called from browser or run.exe by typing "my-awesome-app:[Params]"
@@ -176,23 +179,21 @@ class Notifier:
         :param app_path: absolute path to your script entry point + its interpreter
                             eg. os.path.join(sys.executable, C:/myscript.py)
         """
-        self.app_id = app_id
-        self.app_path = app_path
+        self.app_id = registry_data['id']
         self.icon = ""
         self.callbacks = {}
         pidfile = os.path.join(tempdir, f'{self.app_id}.pid')
 
-        register(self.app_id, self.app_path)
 
         if self._protocol_launched():
             # communicate to main process if it's alive
             self.func_to_call = sys.argv[1].split(':')[1]
             if os.path.isfile(pidfile):
-                sender = Sender()
+                sender = Sender(self.app_id)
                 sender.send(self.func_to_call)
                 sys.exit()
         else:
-            self.listener = Listener()
+            self.listener = Listener(self.app_id)
             open(pidfile, 'w').write(str(os.getpid()))  # pid file
             atexit.register(os.unlink, pidfile)
 
@@ -238,16 +239,43 @@ class Notifier:
             self.listener.callbacks.update(self.callbacks)
             self.listener.thread.start()
 
+
+    def update(self):
+        """
+        check for available callback function in queue then call it
+        this method must be called every time in loop
+        """
+        q = self.listener.queue
+        try:
+            func = q.get_nowait()
+            if callable(func):
+                func()
+            else:
+                print('are ya kiding?')
+        except queue.Empty:
+            pass
+
     def _protocol_launched(self) -> bool:
+        """
+        check whether the app is opened directly or via notification
+        :return: True, if opened from notification; False if opened directly
+        """
         if len(sys.argv) > 1:
             arg = sys.argv[1]
             return format_name(self.app_id) + ':' in arg and len(arg.split(':')) > 0
         else:
             return False
 
-    def callback(self, func: typing.Callable):
-        self.callbacks[func.__name__] = func
-        return func
+    def register_callback(self, _func=None, *, run_in_main_thread=False):
+        def inner(func):
+            setattr(func, 'rimt', run_in_main_thread)
+            self.callbacks[func.__name__] = func
+            return func
+
+        if _func is None:
+            return inner
+        else:
+            return inner(_func)
 
     def callback_to_url(self, func: typing.Callable) -> str:
         """

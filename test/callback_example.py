@@ -1,7 +1,7 @@
 """
 this is an example how to implement the callback feature in winotify
 """
-
+import os.path
 import time
 import sys
 
@@ -9,12 +9,13 @@ import winotify
 
 # instantiate Notifier class
 app_id = "winotify test"
-app_path = sys.executable + ' ' + __file__
+app_path = os.path.abspath(__file__)
 
-notifier = winotify.Notifier(app_id, app_path)
+r = winotify.register(app_id, winotify.PYW_EXE, app_path, replace=True)
+notifier = winotify.Notifier(r)
 
 
-@notifier.callback
+@notifier.register_callback
 def do_somethin():
     print('yo hey')
     for x in range(3, 0, -1):
@@ -23,13 +24,14 @@ def do_somethin():
 
     toast = notifier.create_notification("a new notification", "this is called from another thread",
                                          launch=notifier.callback_to_url(quit_))
-    toast.build().show()
+    toast.show()
 
 
-@notifier.callback  # register quit func
+@notifier.register_callback(run_in_main_thread=True)  # register quit func
 def quit_():
     # this wont work if called from the thread
-    raise KeyboardInterrupt
+    print('YESSSSSS')
+    sys.exit()
 
 
 if __name__ == '__main__':
@@ -41,17 +43,11 @@ if __name__ == '__main__':
     # generic url still works
     toast.add_actions("Open Github", "https://github.com/versa-syahptr/winotify")
     toast.add_actions("Quit app", notifier.callback_to_url(quit_))
-    toast.build().show()
+    toast.show()
 
     print(toast.script)
 
     while True:
+        notifier.update()
         time.sleep(1)
         print("i'm running")
-
-
-
-
-
-
-

@@ -29,7 +29,9 @@ def register(app: str, executable=PY_EXE, script_path: str = '', *, replace=Fals
             winreg.SetValueEx(key, 'URL Protocol', 0, winreg.REG_SZ, '')
             subkey = winreg.CreateKey(key, r"shell\open\command")
             with subkey:
-                winreg.SetValueEx(subkey, '', 0, winreg.REG_SZ, f'"{executable}" "{script_path}" %1')
+                winreg.SetValueEx(subkey, '', 0, winreg.REG_SZ, f'{executable} {script_path} %1')
+
+    return {'id': app, 'exe': executable, 'script': script_path}
 
 
 def format_name(name: str):
