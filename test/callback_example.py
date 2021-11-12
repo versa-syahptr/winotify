@@ -33,7 +33,6 @@ def quit_():
 
 
 if __name__ == '__main__':
-    keyboard.add_hotkey()
     notifier.start()
 
     # no need to specify app_id every time

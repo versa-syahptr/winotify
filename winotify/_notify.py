@@ -162,11 +162,8 @@ class Notification(object):
         _run_ps(command=self.script)
 
 
-
 class Notifier:
-    def __init__(self, app_id, app_path, *,
-                 listener_class: typing.Type[Listener] = Listener,
-                 sender_class: typing.Type[Sender] = Sender):
+    def __init__(self, app_id, app_path):
         """
         register app_id to windows registry as a protocol,
         eg. the app_id is "My Awesome App" can be called from browser or run.exe by typing "my-awesome-app:[Params]"
@@ -191,11 +188,11 @@ class Notifier:
             # communicate to main process if it's alive
             self.func_to_call = sys.argv[1].split(':')[1]
             if os.path.isfile(pidfile):
-                sender = sender_class()
+                sender = Sender()
                 sender.send(self.func_to_call)
                 sys.exit()
         else:
-            self.listener = listener_class()
+            self.listener = Listener()
             open(pidfile, 'w').write(str(os.getpid()))  # pid file
             atexit.register(os.unlink, pidfile)
 
