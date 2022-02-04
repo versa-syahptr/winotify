@@ -44,7 +44,8 @@ the notification will not show
 
 #### Set sound of the notification
 
-All supported audio are in the ```audio``` class 
+All supported audio are in the ```audio``` class
+
 ```python
 from winotify import Notification, audio
 
@@ -53,12 +54,12 @@ toast.set_audio(audio.Mail, loop=False)
 ```
 
 #### Add action button
+
 ```python
 from winotify import Notification
 
 toast = Notification(...)
-toast.add_actions(label="Button text", 
-                  link="https://github.com")
+toast.add_actions(label="Button text")
 ```
 > You can add up to 5 buttons each notification
 

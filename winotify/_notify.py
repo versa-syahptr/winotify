@@ -1,16 +1,15 @@
 import queue
-import sched
 
-from . import audio
-from ._registry import register, format_name
-from .communication import Listener, Sender
+from winotify import audio
+from winotify._registry import Registry, format_name
+from winotify.communication import Listener, Sender
 
 import os
 import subprocess
 import sys
-import typing
 import atexit
 from tempfile import gettempdir
+from typing import Callable, Union
 
 
 TEMPLATE = r"""
@@ -98,36 +97,40 @@ class Notification(object):
         self.duration = duration
         self.launch = launch
         self.audio = audio.Silent
-        self.tag, self.group = '', ''  # you can set this value outside __init__
+        self.tag = self.title
+        self.group = self.app_id
         self.actions = []
         self.script = ""
-        self.__dict__.update(
-            tag=self.tag or self.app_id,
-            group=self.group or self.app_id
-        )
         if duration not in ("short", "long"):
             raise ValueError("Duration is not 'short' or 'long'")
 
-    def set_audio(self, audio: audio.Sound, loop: bool):
+    def set_audio(self, sound: audio.Sound, loop: bool):
         """
         Set audio to the notification object.
 
-        :param audio: The audio to play when the notification is showing. Choose one from audio class,
+        :param sound: The audio to play when the notification is showing. Choose one from audio class,
                       (eg. audio.Default). If not calling this method, default audio is silent
         :param loop: A boolean indicating the audio should looping or not
         :return: None
         """
-        self.audio = '<audio src="{}" loop="{}" />'.format(audio, str(loop).lower())
+        self.audio = '<audio src="{}" loop="{}" />'.format(sound, str(loop).lower())
 
-    def add_actions(self, label: str, url: str = ""):
+    def add_actions(self, label: str, launch: Union[str, Callable] = ""):
         """
         Add action button to the notification. You can have up to 5 buttons each toast.
 
         :param label: The label of the button
-        :param url: The url to launch when clicking the button, 'file:///' protocol is allowed. Or a user defined
-                    protocol to execute a callback function
+        :param launch: The url to launch when clicking the button, 'file:///' protocol is allowed. Or a registered
+                        callback function
         :return: None
         """
+        if callable(launch):
+            if hasattr(launch, 'url'):
+                url = launch.url
+            else:
+                raise ValueError(f"{launch} is not registered")
+        else:
+            url = launch
 
         xml = '<action activationType="protocol" content="{label}" arguments="{link}" />'
         if len(self.actions) < 5:
@@ -138,7 +141,7 @@ class Notification(object):
         """
         :return: self
         """
-        warnings.warn("build is deprecated, call show directly instead", DeprecationWarning)
+        warnings.warn("build method is deprecated, call show directly instead", DeprecationWarning)
         return self
 
     def show(self):
@@ -166,28 +169,25 @@ class Notification(object):
 
 
 class Notifier:
-    def __init__(self, registry_data: dict):
+    def __init__(self, registry: Registry):
         """
-        register app_id to windows registry as a protocol,
-        eg. the app_id is "My Awesome App" can be called from browser or run.exe by typing "my-awesome-app:[Params]"
-        Params is optional
 
-        then call a callback functions from self.callback if the script called from protocol
 
-        :param app_id: your app name, make it readable to your user. It can contain spaces, however special characters
-                           (eg. é) are not supported.
-        :param app_path: absolute path to your script entry point + its interpreter
-                            eg. os.path.join(sys.executable, C:/myscript.py)
+        then call a callback functions from self.callbacks if the script called from protocol
+
+        :param registry: a Registry object from winotify.Registry()
         """
-        self.app_id = registry_data['id']
+        self.app_id = registry.app
         self.icon = ""
-        self.callbacks = {}
         pidfile = os.path.join(tempdir, f'{self.app_id}.pid')
 
+        # alias for callback_to_url()
+        self.cb_url = self.callback_to_url
 
         if self._protocol_launched():
             # communicate to main process if it's alive
             self.func_to_call = sys.argv[1].split(':')[1]
+            self._cb = {}  # callbacks are stored here because we have no listener
             if os.path.isfile(pidfile):
                 sender = Sender(self.app_id)
                 sender.send(self.func_to_call)
@@ -196,6 +196,13 @@ class Notifier:
             self.listener = Listener(self.app_id)
             open(pidfile, 'w').write(str(os.getpid()))  # pid file
             atexit.register(os.unlink, pidfile)
+
+    @property
+    def callbacks(self):
+        if hasattr(self, 'listener'):
+            return self.listener.callbacks
+        else:
+            return self._cb
 
     def set_icon(self, path: str):
         """
@@ -210,7 +217,7 @@ class Notifier:
                             msg: str = '',
                             icon: str = '',
                             duration: str = 'short',
-                            launch: str = '') -> Notification:
+                            launch: Union[str, Callable] = '') -> Notification:
         """
         create new Notification object. See Notification() for documentation
 
@@ -224,7 +231,12 @@ class Notifier:
         if self.icon:
             icon = self.icon
 
-        notif = Notification(self.app_id, title, msg, icon, duration, launch)
+        if callable(launch):
+            url = self.callback_to_url(launch)
+        else:
+            url = launch
+
+        notif = Notification(self.app_id, title, msg, icon, duration, url)
         return notif
 
     def start(self):
@@ -239,19 +251,21 @@ class Notifier:
             self.listener.callbacks.update(self.callbacks)
             self.listener.thread.start()
 
-
     def update(self):
         """
         check for available callback function in queue then call it
         this method must be called every time in loop
         """
+        if self._protocol_launched():
+            return
+
         q = self.listener.queue
         try:
             func = q.get_nowait()
             if callable(func):
                 func()
             else:
-                print('are ya kiding?')
+                print(f"{func.__name__} ")
         except queue.Empty:
             pass
 
@@ -268,8 +282,11 @@ class Notifier:
 
     def register_callback(self, _func=None, *, run_in_main_thread=False):
         def inner(func):
-            setattr(func, 'rimt', run_in_main_thread)
+            if run_in_main_thread:
+                func.rimt = run_in_main_thread
+                # setattr(func, 'rimt', run_in_main_thread)
             self.callbacks[func.__name__] = func
+            func.url = self.callback_to_url(func)
             return func
 
         if _func is None:
@@ -277,7 +294,7 @@ class Notifier:
         else:
             return inner(_func)
 
-    def callback_to_url(self, func: typing.Callable) -> str:
+    def callback_to_url(self, func: Callable) -> str:
         """
         change registered callback to url notation
             my-app-id:function_name
@@ -294,6 +311,3 @@ class Notifier:
         [Windows.UI.Notifications.ToastNotificationManager]::History.Clear('{self.app_id}')
         """
         _run_ps(command=cmd)
-
-
-

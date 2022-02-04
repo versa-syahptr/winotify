@@ -25,21 +25,22 @@ class Listener:
             except multiprocessing.AuthenticationError:
                 continue
 
-            self.run_callback(self.callbacks.get(msg, lambda: print('no such callbacks')))
+            self.run_callback(self.callbacks.get(msg, lambda: print(f'no such callbacks: {msg}')))
 
     def run_callback(self, func: typing.Callable):
         """
-        call function callback, this method can be overridden
+        call function callback, or put it in queue
         :param func: callback's function object
         :return:
         """
-        if hasattr(func, 'rimt') and func.rimt:  # put func to queue
+        if hasattr(func, 'rimt'):  # put func to queue
             self.queue.put(func)
         else:
             func()
 
     def start(self):
         self.thread.start()
+        print(f"Thread {self.thread.name}, {self.thread.is_alive()}")
 
     def _cleanup(self):
         self.server.close()

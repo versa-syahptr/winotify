@@ -16,7 +16,7 @@ def main():
                         metavar="NAME",
                         default="windows app",
                         help="Your app name")
-    parser.add_argument("-thread",
+    parser.add_argument("-t",
                         "--title",
                         default="Winotify Test Toast",
                         help="the notification title")
@@ -28,7 +28,7 @@ def main():
                         "--icon",
                         default='',
                         metavar="PATH",
-                        help="the icon app_path for the notification (note: the app_path must be absolute)")
+                        help="the icon path for the notification (note: the path must be absolute)")
     parser.add_argument("--duration",
                         default="short",
                         choices=("short", "long"),
@@ -81,7 +81,8 @@ def main():
             parser.error("imbalance arguments, "
                          "the amount of action specified is not the same as the specified amount of action-url")
 
-    toast.build().show()
+    toast.show()
+
 
 if __name__ == '__main__':
     main()
