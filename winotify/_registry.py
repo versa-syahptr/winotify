@@ -16,17 +16,25 @@ class InvalidKeyStructure(Exception): pass
 class Registry:
     def __init__(self, app_id: str, executable=PY_EXE, script_path: str = '', *, force_override=False):
         """
-        register app_id to windows registry as a protocol,
+        register app_id to Windows Registry as a protocol,
         eg. the app_id is "My Awesome App" can be called from browser or run.exe by typing "my-awesome-app:[Params]"
-        Params is optional
-        :param app_id:
-        :param executable: [PY_EXE|PYW_EXE] the executable to register. It can be python, pythonw or your compiled
-                           script, default is python.exe
-        :param script_path:
-        :param force_override: if the `app-id` key is exist in Windows Registry, choose whether
+        Params can be a function name to call
 
-        :raise InvalidKeyStructure: if force_override and the key structure is invalid
+        Args:
+            app_id: your app name, make it readable to your user. It can contain spaces, however special characters
+                    (eg. é) are not supported.
+            executable: set the default interpreter or executable to run when a notification is clicked,
+                        default is `PY_EXE` which is python.exe. To hide cmd flashing when a notification is clicked,
+                        use `PYW_EXE`.
+            script_path: The script path, usually `__file__`.
+            force_override: If True, force replace the exists registry value in Windows Registry. Default is False.
+                            Set it True if you want to change default interpreter or script path.
+
+        Raises:
+            InvalidKeyStructure: If `force_override` is True but the registry value is not created by winotify or
+                                 the key structure is invalid.
         """
+
         self.app = format_name(app_id)
         self._key = SUBKEY.format(self.app)
         self.executable = executable
@@ -44,7 +52,7 @@ class Registry:
             raise InvalidKeyStructure(f'The registry from "{self.app}" was not created by winotify or the structure '
                                       f'is invalid')
 
-    def key_exist(self) -> bool:
+    def _key_exist(self) -> bool:
         try:
             winreg.OpenKey(HKEY, self._key).Close()
             return True
@@ -53,7 +61,7 @@ class Registry:
 
     def _register(self):
 
-        if self.key_exist() and self._override:
+        if self._key_exist() and self._override:
             self._validate_structure()  # validate
 
         key = winreg.CreateKey(self.reg, self._key)
@@ -63,7 +71,6 @@ class Registry:
             subkey = winreg.CreateKey(key, SHELLKEY)
             with subkey:
                 winreg.SetValueEx(subkey, '', 0, winreg.REG_SZ, f'{self.executable} {self.path} %1')
-
 
 
 def format_name(name: str):
