@@ -1,37 +1,53 @@
-## Welcome to GitHub Pages
+## Winotify
 
 You can use the [editor on GitHub](https://github.com/versa-syahptr/winotify/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+## Examples
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+#### A simple title and text notification
+```python
+from winotify import Notification
+toast = Notification(app_id="example app",
+                     title="Winotify Test Toast",
+                     msg="New Notification!")
+toast.build().show()
 ```
 
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
+**Result:**
 
-### Jekyll Themes
+![image1](https://github.com/versa-syahptr/winotify/blob/master/image/winotify%20ss1.png?raw=true)
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/versa-syahptr/winotify/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+**The notification stays in the action center!**
 
-### Support or Contact
+![image2](https://github.com/versa-syahptr/winotify/blob/master/image/winotify%20ss2.png?raw=true)
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+#### Show notification with icon
+```python
+from winotify import Notification
+toast = Notification(icon=r"c:\path\to\icon.png"
+                    ...)
+```
+> Note that the icon path must be **absolute** otherwise
+the notification will not show
+#### Set sound of the notification
+
+All supported audio are in the ```audio``` class
+```python
+from winotify import Notification, audio
+toast = Notification(...)
+toast.set_audio(audio.Mail, loop=False)
+```
+
+#### Add action button
+```python
+from winotify import Notification
+toast = Notification(...)
+toast.add_actions(label="Button text", 
+                  link="https://github.com")
+```
+> You can add up to 5 buttons each notification
+
+
+See [docs](/docs/index.html)
