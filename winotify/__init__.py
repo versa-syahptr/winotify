@@ -17,7 +17,7 @@ from winotify._communication import Listener, Sender
 
 
 __author__ = "Versa Syahputra"
-__version__ = "1.1.0-dev"
+__version__ = "1.1.0"
 __all__ = ["Notifier", "Notification", "Registry", "audio"]
 
 
