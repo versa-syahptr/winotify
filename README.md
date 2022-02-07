@@ -1,6 +1,9 @@
 # Winotify
 A pure python module to show notification toast on Windows 10.
 
+No dependencies, no requirements, all you need is PowerShell installed on your machine 
+(which in every Windows computer have it).
+
 ## Installation
 Install winotify using pip
 
@@ -8,20 +11,24 @@ Install winotify using pip
 pip install winotify
 ```
 
-## Changelog
-see [changelog](https://github.com/versa-syahptr/winotify/blob/master/CHANGELOG.md)
+## Features
+
+* Notification stays in action center
+* Clickable notification with 5 additional buttons
+* Use function as a callback when clicking the notification
 
 ## Usage
 
-#### A simple title and text notification
+### A simple notification with icon
 ```python
 from winotify import Notification
 
-toast = Notification(app_id="example app",
+toast = Notification(app_id="windows app",
                      title="Winotify Test Toast",
-                     msg="New Notification!")
+                     msg="New Notification!",
+                     icon=r"c:\path\to\icon.png")
 
-toast.build().show()
+toast.show()
 ```
 
 **Result:**
@@ -32,19 +39,12 @@ toast.build().show()
 
 ![image2](https://github.com/versa-syahptr/winotify/blob/master/image/winotify%20ss2.png?raw=true)
 
-#### Show notification with icon
-```python
-from winotify import Notification
-
-toast = Notification(icon=r"c:\path\to\icon.png"
-                    ...)
-```
 > Note that the icon path must be **absolute** otherwise 
 the notification will not show
 
-#### Set sound of the notification
+### Set sound of the notification
 
-All supported audio are in the ```audio``` class
+All supported audio are in the ```audio``` module
 
 ```python
 from winotify import Notification, audio
@@ -53,13 +53,14 @@ toast = Notification(...)
 toast.set_audio(audio.Mail, loop=False)
 ```
 
-#### Add action button
+### Add action button
 
 ```python
 from winotify import Notification
 
 toast = Notification(...)
-toast.add_actions(label="Button text")
+toast.add_actions(label="Button text", 
+                  launch="https://github.com/versa-syahptr/winotify/")
 ```
 > You can add up to 5 buttons each notification
 

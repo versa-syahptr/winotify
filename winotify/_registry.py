@@ -6,8 +6,20 @@ HKEY = winreg.HKEY_CURRENT_USER
 SUBKEY = r"SOFTWARE\Classes\{}"
 SHELLKEY = r"shell\open\command"
 
-PY_EXE = path.join(path.dirname(sys.executable), "python.exe")
-PYW_EXE = path.join(path.dirname(sys.executable), "pythonw.exe")
+
+class P:
+    def __init__(self, p, s):
+        self.p, self.s = p, s
+
+    def __repr__(self): return self.s
+    def __str__(self): return self.p
+
+
+# path to python.exe
+PY_EXE = P(path.join(path.dirname(sys.executable), "python.exe"), "PY_EXE")
+# path to pythonw.exe
+PYW_EXE = P(path.join(path.dirname(sys.executable), "pythonw.exe"), "PYW_EXE")
+
 
 
 class InvalidKeyStructure(Exception): pass

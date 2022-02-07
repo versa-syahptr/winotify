@@ -1,6 +1,5 @@
 """
-A pure python module to show notification toast on Windows 10.
-.. include:: ../readme.md
+.. include:: ./documentation.md
 """
 
 
@@ -19,7 +18,7 @@ from winotify._communication import Listener, Sender
 
 __author__ = "Versa Syahputra"
 __version__ = "1.1.0-dev"
-__all__ = ["Notifier", "Notification", "Registry", "audio", "PY_EXE", "PYW_EXE"]
+__all__ = ["Notifier", "Notification", "Registry", "audio"]
 
 
 TEMPLATE = r"""
@@ -285,7 +284,7 @@ class Notifier:
         Otherwise, all the callback function will never get called.
 
         Examples:
-            ```
+            ```python
             if __name__ == "__main__":
                 notifier.start()
                 ...
@@ -306,7 +305,7 @@ class Notifier:
         If all callback functions don't need to run in main thread, calling this functions is *optional*
 
         Examples:
-            ```
+            ```python
             # the main loop
             while True:
                 notifier.update()
@@ -347,7 +346,7 @@ class Notifier:
             run_in_main_thread: If True, the callback function will run in main thread
 
         Examples:
-            ```
+            ```python
             @notifier.register_callback
             def foo(): ...
             ```
