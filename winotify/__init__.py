@@ -205,14 +205,14 @@ class Notifier:
         Args:
             registry: A `Registry` instance containing the `app_id`, default interpreter, and the script path.
         """
-        self.app_id = registry.app
+        self.app_id = registry.app_id
         self.icon = ""
         pidfile = os.path.join(tempdir, f'{self.app_id}.pid')
 
         # alias for callback_to_url()
         self.cb_url = self.callback_to_url
 
-        if self._protocol_launched():
+        if self._protocol_launched:
             # communicate to main process if it's alive
             self.func_to_call = sys.argv[1].split(':')[1]
             self._cb = {}  # callbacks are stored here because we have no listener
@@ -290,7 +290,7 @@ class Notifier:
                 ...
             ```
         """
-        if self._protocol_launched():  # call the callback directly
+        if self._protocol_launched:  # call the callback directly
             self.callbacks.get(self.func_to_call)()
 
         else:
@@ -312,7 +312,7 @@ class Notifier:
                 ...
             ```
         """
-        if self._protocol_launched():
+        if self._protocol_launched:
             return
 
         q = self.listener.queue
@@ -325,6 +325,7 @@ class Notifier:
         except queue.Empty:
             pass
 
+    @property
     def _protocol_launched(self) -> bool:
         """
         check whether the app is opened directly or via notification

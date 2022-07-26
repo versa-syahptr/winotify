@@ -50,7 +50,7 @@ def spam():
 def main():
     # no need to specify app_id every time
     toast = notifier.create_notification("a notification", 'a notification test with callback',
-                                         launch=notifier.callback_to_url(do_somethin))
+                                         launch=do_somethin)
     # generic url still works
     toast.add_actions("Open Github", "https://github.com/versa-syahptr/winotify")
     toast.add_actions("Quit app", quit_)

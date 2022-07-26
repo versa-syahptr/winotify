@@ -21,7 +21,6 @@ PY_EXE = P(path.join(path.dirname(sys.executable), "python.exe"), "PY_EXE")
 PYW_EXE = P(path.join(path.dirname(sys.executable), "pythonw.exe"), "PYW_EXE")
 
 
-
 class InvalidKeyStructure(Exception): pass
 
 
@@ -46,7 +45,7 @@ class Registry:
             InvalidKeyStructure: If `force_override` is True but the registry value is not created by winotify or
                                  the key structure is invalid.
         """
-
+        self.app_id = app_id
         self.app = format_name(app_id)
         self._key = SUBKEY.format(self.app)
         self.executable = executable
@@ -86,4 +85,4 @@ class Registry:
 
 
 def format_name(name: str):
-    return name.replace(' ', '-')
+    return name.lower().replace(' ', '-')
