@@ -9,7 +9,7 @@ import subprocess
 import sys
 import atexit
 from tempfile import gettempdir
-from typing import Callable, Union
+from typing import Callable, Union, Literal
 
 from winotify import audio
 from winotify._registry import Registry, format_name, PY_EXE, PYW_EXE
@@ -85,7 +85,7 @@ class Notification(object):
                  title: str,
                  msg: str = "",
                  icon: str = "",
-                 duration: str = 'short',
+                 duration: Literal['short','long'] = 'short',
                  launch: str = ''):
         """
         Construct a new notification
